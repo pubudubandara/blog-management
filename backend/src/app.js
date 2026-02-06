@@ -48,7 +48,7 @@ app.use('/auth', authRoutes);
 // app.use('/blogs', blogRoutes);
 
 // 4. UNHANDLED ROUTES
-app.all('*', (req, res, next) => {
+app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

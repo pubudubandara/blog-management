@@ -6,8 +6,8 @@ import {
     logout, 
     getMe, 
     refreshToken 
-} from '../../controllers/v1/authController.js';
-import { protect } from '../../middlewares/authMiddleware.js';
+} from '../controllers/authController.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 

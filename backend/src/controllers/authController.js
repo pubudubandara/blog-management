@@ -1,38 +1,38 @@
+// Import required modules
 import authService from '../services/authService.js';
 import AppError from '../utils/AppError.js';
 
-/**
- * Register a new user
- * @route POST /api/auth/register
- * @access Public
- */
+// Register a new user
 export const register = async (req, res, next) => {
     try {
+        // Get data from request
         const { username, email, password, role } = req.body;
         
-        // Basic validation
+        // Check required fields
         if (!username || !email || !password) {
             throw new AppError('Missing required fields: username, email, password', 400);
         }
 
-        // Email format validation
+        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             throw new AppError('Please provide a valid email address', 400);
         }
 
-        // Username validation
+        // Check username length
         if (username.length < 3 || username.length > 30) {
             throw new AppError('Username must be between 3 and 30 characters', 400);
         }
 
-        // Password validation
+        // Check password length
         if (password.length < 6) {
             throw new AppError('Password must be at least 6 characters', 400);
         }
 
+        // Create user in database
         const user = await authService.register({ username, email, password, role });
 
+        // Return success response
         res.status(201).json({
             status: 'success',
             message: 'User registered successfully',
@@ -50,23 +50,21 @@ export const register = async (req, res, next) => {
     }
 };
 
-/**
- * Login user and return JWT token
- * @route POST /api/auth/login
- * @access Public
- */
+// Login user
 export const login = async (req, res, next) => {
     try {
+        // Get login credentials
         const { email, password } = req.body;
 
-        // Basic validation
+        // Check if credentials provided
         if (!email || !password) {
             throw new AppError('Please provide email and password', 400);
         }
 
+        // Authenticate user
         const { user, token } = await authService.login(email, password);
 
-        // Set cookie (optional)
+        // Set token as cookie
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -74,6 +72,7 @@ export const login = async (req, res, next) => {
             maxAge: 24 * 60 * 60 * 1000 // 1 day
         });
 
+        // Return success response
         res.status(200).json({
             status: 'success',
             message: 'Logged in successfully',
@@ -84,17 +83,13 @@ export const login = async (req, res, next) => {
     }
 };
 
-/**
- * Logout user (clear token)
- * @route POST /api/auth/logout
- * @access Private
- */
+// Logout user
 export const logout = async (req, res, next) => {
     try {
         // Clear token cookie
         res.clearCookie('token');
         
-        // If using authService.logout() method (for refresh tokens)
+        // Clear refresh token if user is logged in
         if (req.user && req.user.id) {
             const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
             if (refreshToken) {
@@ -102,6 +97,7 @@ export const logout = async (req, res, next) => {
             }
         }
 
+        // Return success response
         res.status(200).json({
             status: 'success',
             message: 'Logged out successfully'
@@ -111,19 +107,17 @@ export const logout = async (req, res, next) => {
     }
 };
 
-/**
- * Get current user profile
- * @route GET /api/auth/me
- * @access Private
- */
+// Get current user profile
 export const getMe = async (req, res, next) => {
     try {
         const user = await userRepository.findById(req.user.id);
         
+        // Check if user exists
         if (!user) {
             throw new AppError('User not found', 404);
         }
 
+        // Return user data
         res.status(200).json({
             status: 'success',
             data: { user }
@@ -133,21 +127,21 @@ export const getMe = async (req, res, next) => {
     }
 };
 
-/**
- * Refresh access token using refresh token
- * @route POST /api/auth/refresh-token
- * @access Public (requires valid refresh token)
- */
+// Refresh access token
 export const refreshToken = async (req, res, next) => {
     try {
+        // Get refresh token
         const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
         
+        // Check if refresh token exists
         if (!refreshToken) {
             throw new AppError('Refresh token required', 400);
         }
 
+        // Get new access token
         const { accessToken } = await authService.refreshToken(refreshToken);
 
+        // Return new token
         res.status(200).json({
             status: 'success',
             data: { accessToken }
