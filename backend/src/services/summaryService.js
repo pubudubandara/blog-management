@@ -6,7 +6,7 @@
  * @param {number} sentenceCount - Number of sentences in summary (default: 3)
  * @returns {string} - The generated summary
  */
-exports.generateSummary = (content, sentenceCount = 3) => {
+export const generateSummary = (content, sentenceCount = 3) => {
     // Validate input
     if (!content || typeof content !== 'string') return "";
     const trimmedContent = content.trim();
@@ -173,7 +173,7 @@ exports.generateSummary = (content, sentenceCount = 3) => {
  * @param {string} content - The full content
  * @returns {string} - First paragraph summary
  */
-exports.extractFirstParagraph = (content) => {
+export const extractFirstParagraph = (content) => {
     if (!content || typeof content !== 'string') return "";
     
     // Extract text before first double newline (paragraph break)
