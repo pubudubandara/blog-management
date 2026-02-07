@@ -3,9 +3,16 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
-import swaggerJsDoc from 'swagger-jsdoc';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import yaml from 'yaml';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 import authRoutes from './routes/authRoutes.js';
+import blogRoutes from './routes/blogRoutes.js'; 
 
 import AppError from './utils/AppError.js';
 import { errorHandler } from './middlewares/errorMiddleware.js'; 
@@ -18,34 +25,14 @@ app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 app.use(morgan('dev')); // Log requests to console
 
-// 2. SWAGGER DOCS SETUP
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Blog API',
-      version: '1.0.0',
-      description: 'Blog Management API with Auto-Summarization',
-    },
-    servers: [{ url: `http://localhost:${process.env.PORT || 3000}` }],
-    components: {
-        securitySchemes: {
-            bearerAuth: {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
-            }
-        }
-    }
-  },
-  apis: ['./src/routes/*.js'], // Look for comments in routes
-};
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// 2. SWAGGER DOCS SETUP - Using External YAML File
+const swaggerFile = readFileSync(join(__dirname, '../swagger.yaml'), 'utf8');
+const swaggerDocument = yaml.parse(swaggerFile);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // 3. ROUTES
 app.use('/auth', authRoutes);
-// app.use('/blogs', blogRoutes);
+app.use('/blogs', blogRoutes);
 
 // 4. UNHANDLED ROUTES
 app.use((req, res, next) => {
