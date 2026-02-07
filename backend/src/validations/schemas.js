@@ -22,11 +22,14 @@ export const loginSchema = z.object({
   }),
 });
 
+// For refresh token - it can come from body OR cookies, so we make body validation 
 export const refreshTokenSchema = z.object({
   body: z.object({
-    refreshToken: z.string().min(1, 'Refresh token is required'),
-  }).optional(), // Optional because it can come from cookies
-});
+    refreshToken: z.string().optional(),
+  }).optional(),
+  query: z.object({}).optional(),
+  params: z.object({}).optional(),
+}).passthrough();
 
 // 2. Blog Validation Schemas
 export const createBlogSchema = z.object({
