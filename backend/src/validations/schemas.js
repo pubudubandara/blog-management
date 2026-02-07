@@ -3,7 +3,7 @@ import { z } from 'zod';
 // 1. Auth Validation Schemas
 export const registerSchema = z.object({
   body: z.object({
-    username: z.string().min(3, 'Username must be at least 3 characters'),
+    username: z.string().min(3, 'Username must be at least 3 characters').max(30, 'Username must not exceed 30 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     role: z.enum(['admin', 'user', 'editor']).optional(), // Optional, defaults to user in DB
@@ -12,24 +12,42 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   body: z.object({
-    email: z.string().email(),
+    email: z.string().email('Invalid email address'),
     password: z.string().min(1, 'Password is required'),
   }),
+});
+
+export const refreshTokenSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, 'Refresh token is required'),
+  }).optional(), // Optional because it can come from cookies
 });
 
 // 2. Blog Validation Schemas
 export const createBlogSchema = z.object({
   body: z.object({
-    title: z.string().min(5, 'Title must be at least 5 characters'),
+    title: z.string().min(5, 'Title must be at least 5 characters').max(255, 'Title must not exceed 255 characters'),
     content: z.string().min(20, 'Content must be at least 20 characters for summarization'),
   }),
 });
 
 export const updateBlogSchema = z.object({
   body: z.object({
-    title: z.string().min(5).optional(),
-    content: z.string().min(20).optional(),
+    title: z.string().min(5, 'Title must be at least 5 characters').max(255, 'Title must not exceed 255 characters').optional(),
+    content: z.string().min(20, 'Content must be at least 20 characters').optional(),
   }),
+  params: z.object({
+    id: z.string().regex(/^\d+$/, 'ID must be a number'),
+  }),
+});
+
+export const getBlogByIdSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, 'ID must be a number'),
+  }),
+});
+
+export const deleteBlogSchema = z.object({
   params: z.object({
     id: z.string().regex(/^\d+$/, 'ID must be a number'),
   }),
