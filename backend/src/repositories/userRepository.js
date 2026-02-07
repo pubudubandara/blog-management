@@ -1,9 +1,9 @@
-// src/repositories/userRepository.js
 import db from '../config/db.js';
 
 class UserRepository {
     async create(userData) {
         const { username, email, password_hash, role } = userData;
+        // Using prepared statements (?) to prevent SQL Injection 
         const [result] = await db.execute(
             'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
             [username, email, password_hash, role || 'user']
@@ -32,13 +32,24 @@ class UserRepository {
         return rows[0];
     }
 
-    // --- NEW METHOD ---
-    async findAll() {
+    // Pagination Logic (LIMIT & OFFSET)
+    async findAll(limit, offset) {
+        const safeLimit = parseInt(limit) || 10;
+        const safeOffset = parseInt(offset) || 0;
+
         // Select only safe fields
         const [rows] = await db.execute(
-            'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
+            `SELECT id, username, email, role, created_at FROM users 
+             ORDER BY created_at DESC 
+             LIMIT ${safeLimit} OFFSET ${safeOffset}`
         );
-        return rows;
+
+        // Get total count for pagination metadata
+        const [[{ total }]] = await db.execute(
+            'SELECT COUNT(*) as total FROM users'
+        );
+
+        return { users: rows, total };
     }
 }
 

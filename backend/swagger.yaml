@@ -584,12 +584,28 @@ paths:
       tags:
         - Users
       summary: Get all users (Admin only)
-      description: Retrieve a list of all users (requires admin role)
+      description: Retrieve a paginated list of all users (requires admin role)
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+          description: Number of items per page
       responses:
         '200':
-          description: List of all users
+          description: List of all users with pagination
           content:
             application/json:
               schema:
@@ -608,6 +624,21 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/User'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            example: 1
+                          limit:
+                            type: integer
+                            example: 10
+                          total:
+                            type: integer
+                            example: 50
+                          totalPages:
+                            type: integer
+                            example: 5
         '403':
           description: Forbidden (Not Admin)
           content:

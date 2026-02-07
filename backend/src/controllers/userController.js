@@ -4,12 +4,24 @@ import AppError from '../utils/AppError.js';
 
 export const getAllUsers = async (req, res, next) => {
     try {
-        const users = await userRepository.findAll();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { users, total } = await userRepository.findAll(limit, offset);
         
         res.status(200).json({
             status: 'success',
             results: users.length,
-            data: { users }
+            data: { 
+                users,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
         });
     } catch (err) {
         next(err);

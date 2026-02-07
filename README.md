@@ -88,7 +88,7 @@ Complete, interactive documentation is available via Swagger UI once the server 
 | :--- | :--- | :--- | :--- |
 | `POST` | `/auth/register` | Public | Register a new user |
 | `POST` | `/auth/login` | Public | Login & receive JWT |
-| `GET` | `/users` | **Admin** | Get all users |
+| `GET` | `/users` | **Admin** | Get all users (Paginated) |
 | `GET` | `/users/:id` | Auth | Get user details |
 | `POST` | `/blogs` | Auth | Create a blog (Triggers AI Summary) |
 | `GET` | `/blogs` | Public | Get all blogs (Paginated) |
