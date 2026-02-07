@@ -2,7 +2,7 @@ import express from 'express';
 import * as blogController from '../controllers/blogController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
 import { validate } from '../middlewares/validate.js';
-import { createBlogSchema, updateBlogSchema } from '../validations/schemas.js';
+import { createBlogSchema, updateBlogSchema, getBlogByIdSchema, deleteBlogSchema } from '../validations/schemas.js';
 
 const router = express.Router();
 
@@ -12,8 +12,8 @@ router.route('/')
   .post(protect, validate(createBlogSchema), blogController.createBlog);
 
 router.route('/:id')
-  .get(blogController.getBlogById)
+  .get(validate(getBlogByIdSchema), blogController.getBlogById)
   .put(protect, validate(updateBlogSchema), blogController.updateBlog)
-  .delete(protect, restrictTo('admin'), blogController.deleteBlog);
+  .delete(protect, restrictTo('admin'), validate(deleteBlogSchema), blogController.deleteBlog);
 
 export default router;
