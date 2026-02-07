@@ -25,6 +25,13 @@ class UserRepository {
         return rows[0];
     }
 
+    // Method to find user by username
+    async findByUsername(username) {
+        const sql = 'SELECT * FROM users WHERE username = ?';
+        const [rows] = await db.execute(sql, [username]);
+        return rows[0];
+    }
+
     // --- NEW METHOD ---
     async findAll() {
         // Select only safe fields

@@ -13,7 +13,7 @@ router.use(protect);
 // GET /users - Get all users (Admin only)
 router.get('/', restrictTo('admin'), userController.getAllUsers);
 
-// GET /users/:id - Get user by ID (Protected)
-router.get('/:id', userController.getUserById);
+// GET /users/:id - Get user by ID (Admin only)
+router.get('/:id', restrictTo('admin'), userController.getUserById);
 
 export default router;
