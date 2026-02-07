@@ -95,6 +95,10 @@ Complete, interactive documentation is available via Swagger UI once the server 
 | `PUT` | `/blogs/:id` | Owner/Admin | [cite_start]Update blog content [cite: 35] |
 | `DELETE` | `/blogs/:id` | **Admin** | [cite_start]Delete a blog [cite: 36] |
 
+**📌 Privacy & Data Filtering for `/users/:id`:**
+- **Case 1:** Admin or the user themselves → Returns full details (email, role, etc.)
+- **Case 2:** Other authenticated users → Returns public details only (id, username)
+
 ---
 
 ## 📊 Logging & Debugging
@@ -110,28 +114,54 @@ Complete, interactive documentation is available via Swagger UI once the server 
 
 ---
 
-## 🗄️ Database Schema Explanation
+## 🗄️ Database Schema
 
-[cite_start]The database consists of two normalized tables designed for scalability and data integrity[cite: 10, 45].
+The database consists of two normalized tables designed for scalability and data integrity.
 
 ### 1. `users` Table
-Handles authentication and authorization.
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'user') DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_users_email ON users(email);
+```
+**Key Points:**
 * **`id`**: Primary Key.
-* **`role`**: ENUM(`'admin'`, `'user'`) to enforce RBAC policies strictly at the database level.
+* **`username`**: Unique identifier for public display.
+* **`email`**: Unique, indexed for fast login lookups.
 * **`password_hash`**: Stores bcrypt-hashed passwords (never plaintext).
-* **Indexes**: `email` is indexed for O(1) login lookups.
+* **`role`**: ENUM(`'admin'`, `'user'`) to enforce RBAC policies at the database level.
 
 ### 2. `blogs` Table
-Stores content and relationships.
+```sql
+CREATE TABLE IF NOT EXISTS blogs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    summary TEXT,
+    author_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_blogs_author ON blogs(author_id);
+```
+**Key Points:**
 * **`author_id`**: Foreign Key linking to `users.id`. Used to verify "Owner" permission.
-* **`summary`**: Stores the processed summary (AI or Fallback) to avoid re-calculation on read.
+* **`summary`**: Stores the AI/fallback-generated summary to avoid re-calculation on read.
 * **`ON DELETE CASCADE`**: Ensures that if a user is deleted, their blogs are removed automatically.
+* **`updated_at`**: Automatically updates on record modification.
 
 ---
 
 ## 🧪 Testing
 
-[cite_start]A Postman collection is included in the root directory: `Blog_API.postman_collection.json`[cite: 49].
+[cite_start]A Postman collection is included in the root directory: `Blog -Management.postman_collection.json`[cite: 49].
 
 **To Import:**
 1.  Open Postman.
