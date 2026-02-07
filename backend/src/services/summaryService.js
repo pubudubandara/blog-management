@@ -1,17 +1,62 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import logger from '../utils/logger.js'; // Import our Winston logger
+
+// Initialize Gemini Client
+let genAI = null;
+let model = null;
+
+try {
+    // Only initialize if API key is available
+    if (process.env.GEMINI_API_KEY) {
+        genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    }
+} catch (error) {
+    logger.warn(`Failed to initialize Gemini AI: ${error.message}`);
+}
+
 /**
- * Generates an intelligent summary by extracting the most important sentences.
- * Uses TextRank algorithm with modern Intl.Segmenter for sentence detection.
- * 
- * @param {string} content - The full content to summarize
- * @param {number} sentenceCount - Number of sentences in summary (default: 3)
- * @returns {string} - The generated summary
+ * Generates a summary using Gemini API, falling back to TextRank algorithm if it fails
+ * @param {string} content - The full blog content
+ * @param {number} sentenceCount - Number of sentences for fallback (default: 3)
+ * @returns {Promise<string>} - The summary
  */
-export const generateSummary = (content, sentenceCount = 3) => {
-    // Validate input
+export const generateSummary = async (content, sentenceCount = 3) => {
     if (!content || typeof content !== 'string') return "";
     const trimmedContent = content.trim();
     if (!trimmedContent) return "";
 
+    // 1. Try Gemini API First (only if properly initialized)
+    if (model) {
+        try {
+            const prompt = `Summarize the following text in 2-3 concise sentences. Capture the main idea clearly. Do not add any introductory phrases like "The text discusses" or "This article is about". Just provide the summary directly.
+
+Text: "${trimmedContent.substring(0, 5000)}"`;
+            
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const summary = response.text();
+
+            logger.info('Generated summary via Gemini AI');
+            return summary.trim();
+        } catch (error) {
+            // Log the error but don't throw - fallback to TextRank algorithm
+            logger.warn(`Gemini API failed. Using TextRank fallback. Error: ${error.message}`);
+        }
+    } else {
+        logger.info('Gemini API not configured, using TextRank summarizer');
+    }
+
+    // 2. Fallback to TextRank Algorithm (your original implementation)
+    return generateTextRankSummary(trimmedContent, sentenceCount);
+};
+
+
+// Original TextRank summarization algorithm (slightly renamed from generateFallbackSummary)
+ 
+const generateTextRankSummary = (content, sentenceCount = 3) => {
+    const trimmedContent = content.trim();
+    
     // --- 1. SENTENCE SEGMENTATION ---
     let sentences;
     
@@ -165,38 +210,6 @@ export const generateSummary = (content, sentenceCount = 3) => {
             : trimmedContent;
     }
 
+    logger.info('Generated summary via TextRank algorithm');
     return summary;
-};
-
-/**
- * Simple alternative: Extract first paragraph (good for blogs)
- * @param {string} content - The full content
- * @returns {string} - First paragraph summary
- */
-export const extractFirstParagraph = (content) => {
-    if (!content || typeof content !== 'string') return "";
-    
-    // Extract text before first double newline (paragraph break)
-    const paragraphs = content.split(/\n\s*\n/);
-    if (paragraphs.length === 0) return "";
-    
-    const firstPara = paragraphs[0].trim();
-    
-    // Remove markdown headers if present
-    const cleanPara = firstPara.replace(/^#+\s*/, '').replace(/\n/g, ' ').trim();
-    
-    // Limit length
-    if (cleanPara.length <= 250) return cleanPara;
-    
-    // Try to cut at sentence end
-    const lastPeriod = cleanPara.lastIndexOf('.', 250);
-    const lastExcl = cleanPara.lastIndexOf('!', 250);
-    const lastQuest = cleanPara.lastIndexOf('?', 250);
-    const lastPunct = Math.max(lastPeriod, lastExcl, lastQuest);
-    
-    if (lastPunct > 150) {
-        return cleanPara.substring(0, lastPunct + 1);
-    }
-    
-    return cleanPara.substring(0, 247) + "...";
 };

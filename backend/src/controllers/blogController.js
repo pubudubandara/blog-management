@@ -1,16 +1,24 @@
 import blogService from "../services/blogService.js";
+import { generateSummary } from "../services/summaryService.js";
 
-// Create a new blog post
+// Create blog
 export const createBlog = async (req, res, next) => {
   try {
-    const blog = await blogService.createBlog(req.body, req.user);
+    const { title, content, summary: userSummary } = req.body;
+    let summary;
+    if (userSummary && userSummary.trim()) {
+      summary = userSummary.trim();
+    } else {
+      summary = await generateSummary(content);
+    }
+    const blog = await blogService.createBlog({ title, content, summary }, req.user);
     res.status(201).json({ status: "success", data: blog });
   } catch (err) {
     next(err);
   }
 };
 
-// Get all blog posts with pagination
+// Get all blogs
 export const getAllBlogs = async (req, res, next) => {
   try {
     const { page, limit } = req.query;
@@ -21,7 +29,7 @@ export const getAllBlogs = async (req, res, next) => {
   }
 };
 
-// Get a single blog post by ID
+// Get single blog
 export const getBlogById = async (req, res, next) => {
   try {
     const blog = await blogService.getBlogById(req.params.id);
@@ -31,12 +39,25 @@ export const getBlogById = async (req, res, next) => {
   }
 };
 
-// Update a blog post
+// Update blog
 export const updateBlog = async (req, res, next) => {
   try {
+    const { title, content, summary: userSummary } = req.body;
+    let summary = userSummary;
+    
+    // Regenerate summary 
+    if (content && !userSummary) {
+      const currentBlog = await blogService.getBlogById(req.params.id);
+      if (currentBlog.content !== content) {
+        summary = await generateSummary(content);
+      } else {
+        summary = currentBlog.summary;
+      }
+    }
+    
     const blog = await blogService.updateBlog(
       req.params.id,
-      req.body,
+      { title, content, summary },
       req.user,
     );
     res.status(200).json({ status: "success", data: blog });
@@ -45,14 +66,11 @@ export const updateBlog = async (req, res, next) => {
   }
 };
 
-// Delete a blog post
+// Delete blog
 export const deleteBlog = async (req, res, next) => {
   try {
     await blogService.deleteBlog(req.params.id);
-    res.status(200).json({
-      status: "success",
-      message: "Blog deleted successfully",
-    });
+    res.status(200).json({ status: "success", message: "Blog deleted" });
   } catch (err) {
     next(err);
   }

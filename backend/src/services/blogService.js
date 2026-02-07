@@ -5,7 +5,7 @@ import AppError from "../utils/AppError.js";
 class BlogService {
   async createBlog(data, user) {
     // 1. Generate Summary Logic
-    const summary = generateSummary(data.content);
+    const summary = await generateSummary(data.content);
 
     // 2. Save to DB
     const blogId = await blogRepository.create({
@@ -51,7 +51,7 @@ class BlogService {
     // If content changed, re-generate summary
     let summary;
     if (data.content) {
-      summary = generateSummary(data.content);
+      summary = await generateSummary(data.content);
     }
 
     await blogRepository.update(id, { ...data, summary });
