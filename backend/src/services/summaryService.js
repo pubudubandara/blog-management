@@ -15,12 +15,9 @@ try {
     logger.warn(`Failed to initialize Gemini AI: ${error.message}`);
 }
 
-/**
- * Generates a summary using Gemini API, falling back to TextRank algorithm if it fails
- * @param {string} content - The full blog content
- * @param {number} sentenceCount - Number of sentences for fallback (default: 3)
- * @returns {Promise<string>} - The summary
- */
+
+//Generates a summary using Gemini API, falling back to TextRank algorithm if it fails
+
 export const generateSummary = async (content, sentenceCount = 3) => {
     if (!content || typeof content !== 'string') return "";
     const trimmedContent = content.trim();

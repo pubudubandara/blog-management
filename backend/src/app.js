@@ -22,8 +22,8 @@ const app = express();
 
 // 1. GLOBAL MIDDLEWARE
 app.use(helmet()); // Set security HTTP headers
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Parse JSON bodies
+app.use(cors()); 
+app.use(express.json());
 app.use(morgan('dev')); // Log requests to console
 
 // 2. SWAGGER DOCS SETUP - Using External YAML File
