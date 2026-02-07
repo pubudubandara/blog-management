@@ -12,7 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import authRoutes from './routes/authRoutes.js';
-import blogRoutes from './routes/blogRoutes.js'; 
+import blogRoutes from './routes/blogRoutes.js';
+import userRoutes from './routes/userRoutes.js'; // <--- 1. Import this 
 
 import AppError from './utils/AppError.js';
 import { errorHandler } from './middlewares/errorMiddleware.js'; 
@@ -32,6 +33,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // 3. ROUTES
 app.use('/auth', authRoutes);
+app.use('/users', userRoutes); // <--- 2. Add this
 app.use('/blogs', blogRoutes);
 
 // 4. UNHANDLED ROUTES
