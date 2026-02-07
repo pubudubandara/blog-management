@@ -2,19 +2,17 @@
 
 A robust, containerized backend system for managing blogs with role-based access control (RBAC) and **automatic AI-powered content summarization**.
 
-Built as part of the Technical Assignment for the **Decryptogen Backend Engineer Intern** position.
-
 ---
 
 ## 🚀 Key Features
 
-* **3-Layer Architecture:** (Controller → Service → Repository) for separation of concerns and maintainability.
-* **AI-Powered Summarization:** Automatically generates concise summaries using **Google Gemini AI**.
+* [cite_start]**3-Layer Architecture:** (Controller → Service → Repository) for separation of concerns and maintainability[cite: 5, 9].
+* [cite_start]**AI-Powered Summarization:** Automatically generates concise summaries using **Google Gemini AI**[cite: 19, 20].
 * **Resilient Fallback System:** If the AI service fails, a custom heuristic algorithm ensures a summary is still generated.
-* **Role-Based Access Control (RBAC):** Granular permissions for `Admin`, `User`, and `Owner` roles.
-* **Security First:** Implements `Helmet` for headers, `Bcrypt` for hashing, and `Zod` for strict input validation.
-* **Dockerized:** Full production-ready setup with MySQL and Node.js containers.
-* **Swagger Documentation:** Interactive API docs available at `/api-docs`.
+* [cite_start]**Role-Based Access Control (RBAC):** Strict permissions for `Admin` and `User` roles[cite: 21].
+* [cite_start]**Professional Logging:** Structured logging using **Winston** (errors/info) and **Morgan** (HTTP requests) for debugging[cite: 14].
+* [cite_start]**Dockerized:** Full production-ready setup with MySQL and Node.js containers[cite: 13, 47].
+* [cite_start]**Swagger Documentation:** Interactive API docs available at `/api-docs`[cite: 44].
 
 ---
 
@@ -25,6 +23,7 @@ Built as part of the Technical Assignment for the **Decryptogen Backend Engineer
 * **Database:** MySQL 8.0
 * **Containerization:** Docker & Docker Compose
 * **AI Integration:** Google Gemini Flash Model
+* **Logging:** Winston & Morgan
 * **Validation:** Zod
 * **Documentation:** Swagger UI
 
@@ -38,7 +37,7 @@ Built as part of the Technical Assignment for the **Decryptogen Backend Engineer
 1.  **Clone the repository:**
     ```bash
     git clone <YOUR_REPO_LINK>
-    cd blog-backend
+    cd backend
     ```
 
 2.  **Configure Environment:**
@@ -56,7 +55,7 @@ Built as part of the Technical Assignment for the **Decryptogen Backend Engineer
 4.  **Verify:**
     * **API:** Running at `http://localhost:3000`
     * **Docs:** `http://localhost:3000/api-docs`
-    * **Health:** `http://localhost:3000/health` (if implemented)
+    * **Health:** `http://localhost:3000/health`
 
 ### Option 2: Run Locally (Manual)
 
@@ -68,7 +67,7 @@ Built as part of the Technical Assignment for the **Decryptogen Backend Engineer
 2.  **Database Setup:**
     * Ensure you have a local MySQL instance running.
     * Create a database named `blog_db`.
-    * Import the `schema.sql` file manually.
+    * [cite_start]Import the `schema.sql` file manually[cite: 46].
 
 3.  **Run Server:**
     ```bash
@@ -89,21 +88,36 @@ Complete, interactive documentation is available via Swagger UI once the server 
 | :--- | :--- | :--- | :--- |
 | `POST` | `/auth/register` | Public | Register a new user |
 | `POST` | `/auth/login` | Public | Login & receive JWT |
-| `POST` | `/blogs` | Auth | Create a blog (Triggers AI Summary) |
-| `GET` | `/blogs` | Public | Get all blogs (Paginated) |
-| `PUT` | `/blogs/:id` | Owner/Admin | Update blog content |
-| `DELETE` | `/blogs/:id` | Admin | Delete a blog |
+| `GET` | `/users` | **Admin** | [cite_start]Get all users [cite: 31] |
+| `GET` | `/users/:id` | Auth | [cite_start]Get user details [cite: 32] |
+| `POST` | `/blogs` | Auth | [cite_start]Create a blog (Triggers AI Summary) [cite: 33] |
+| `GET` | `/blogs` | Public | [cite_start]Get all blogs (Paginated) [cite: 33] |
+| `PUT` | `/blogs/:id` | Owner/Admin | [cite_start]Update blog content [cite: 35] |
+| `DELETE` | `/blogs/:id` | **Admin** | [cite_start]Delete a blog [cite: 36] |
+
+---
+
+## 📊 Logging & Debugging
+
+[cite_start]To satisfy the requirement for "Basic testing and debugging practices"[cite: 14], this system implements a dual-layer logging strategy:
+
+1.  **HTTP Request Logging (Morgan):**
+    * Logs all incoming HTTP requests (method, status, response time) to the console for real-time monitoring.
+2.  **Application Logging (Winston):**
+    * **Error Logs:** Critical failures are written to `logs/error.log`.
+    * **Combined Logs:** General info and warnings are written to `logs/combined.log`.
+    * **Console:** In development mode, pretty-printed logs are output to the terminal.
 
 ---
 
 ## 🗄️ Database Schema Explanation
 
-The database consists of two normalized tables designed for scalability and data integrity.
+[cite_start]The database consists of two normalized tables designed for scalability and data integrity[cite: 10, 45].
 
 ### 1. `users` Table
 Handles authentication and authorization.
 * **`id`**: Primary Key.
-* **`role`**: ENUM(`'admin'`, `'user'`, `'editor'`) to enforce RBAC policies strictly at the database level.
+* **`role`**: ENUM(`'admin'`, `'user'`) to enforce RBAC policies strictly at the database level.
 * **`password_hash`**: Stores bcrypt-hashed passwords (never plaintext).
 * **Indexes**: `email` is indexed for O(1) login lookups.
 
@@ -111,13 +125,13 @@ Handles authentication and authorization.
 Stores content and relationships.
 * **`author_id`**: Foreign Key linking to `users.id`. Used to verify "Owner" permission.
 * **`summary`**: Stores the processed summary (AI or Fallback) to avoid re-calculation on read.
-* **`ON DELETE CASCADE`**: Ensures that if a user is deleted, their blogs are removed automatically to prevent orphaned records.
+* **`ON DELETE CASCADE`**: Ensures that if a user is deleted, their blogs are removed automatically.
 
 ---
 
-## 🧪 Testing & Postman
+## 🧪 Testing
 
-A Postman collection is included in the root directory: `Blog_API.postman_collection.json`.
+[cite_start]A Postman collection is included in the root directory: `Blog_API.postman_collection.json`[cite: 49].
 
 **To Import:**
 1.  Open Postman.
