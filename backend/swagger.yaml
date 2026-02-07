@@ -76,6 +76,8 @@ components:
           example: An error occurred
 
 tags:
+  - name: Health
+    description: Health check endpoint
   - name: Auth
     description: User authentication and registration
   - name: Blogs
@@ -84,6 +86,35 @@ tags:
     description: User management
 
 paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check if the server is running and get uptime information
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Server is running
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: 2026-02-07T10:30:00.000Z
+                  uptime:
+                    type: number
+                    example: 3600.5
+                    description: Server uptime in seconds
+
   /auth/register:
     post:
       tags:

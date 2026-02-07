@@ -13,7 +13,7 @@ const __dirname = dirname(__filename);
 
 import authRoutes from './routes/authRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
-import userRoutes from './routes/userRoutes.js'; // <--- 1. Import this 
+import userRoutes from './routes/userRoutes.js'; 
 
 import AppError from './utils/AppError.js';
 import { errorHandler } from './middlewares/errorMiddleware.js'; 
@@ -31,12 +31,22 @@ const swaggerFile = readFileSync(join(__dirname, '../swagger.yaml'), 'utf8');
 const swaggerDocument = yaml.parse(swaggerFile);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// 3. ROUTES
+// 3. HEALTH CHECK ENDPOINT
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// 4. ROUTES
 app.use('/auth', authRoutes);
-app.use('/users', userRoutes); // <--- 2. Add this
+app.use('/users', userRoutes);
 app.use('/blogs', blogRoutes);
 
-// 4. UNHANDLED ROUTES
+// 5. UNHANDLED ROUTES
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
