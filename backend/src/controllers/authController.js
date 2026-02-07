@@ -5,29 +5,8 @@ import AppError from '../utils/AppError.js';
 // Register a new user
 export const register = async (req, res, next) => {
     try {
-        // Get data from request
+        // Validation is handled by Zod middleware
         const { username, email, password, role } = req.body;
-        
-        // Check required fields
-        if (!username || !email || !password) {
-            throw new AppError('Missing required fields: username, email, password', 400);
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            throw new AppError('Please provide a valid email address', 400);
-        }
-
-        // Check username length
-        if (username.length < 3 || username.length > 30) {
-            throw new AppError('Username must be between 3 and 30 characters', 400);
-        }
-
-        // Check password length
-        if (password.length < 6) {
-            throw new AppError('Password must be at least 6 characters', 400);
-        }
 
         // Create user in database
         const user = await authService.register({ username, email, password, role });
@@ -53,13 +32,8 @@ export const register = async (req, res, next) => {
 // Login user
 export const login = async (req, res, next) => {
     try {
-        // Get login credentials
+        // Validation is handled by Zod middleware
         const { email, password } = req.body;
-
-        // Check if credentials provided
-        if (!email || !password) {
-            throw new AppError('Please provide email and password', 400);
-        }
 
         // Authenticate user and get both tokens
         const { user, accessToken, refreshToken } = await authService.login(email, password);
@@ -96,14 +70,6 @@ export const logout = async (req, res, next) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
         });
-        
-        // Optional: Invalidate refresh token in database if you're tracking them
-        if (req.user && req.user.id) {
-            const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
-            if (refreshToken) {
-                await authService.logout(req.user.id, refreshToken);
-            }
-        }
 
         // Return success response
         res.status(200).json({
@@ -138,10 +104,11 @@ export const getMe = async (req, res, next) => {
 // Refresh access token
 export const refreshToken = async (req, res, next) => {
     try {
-        // Get refresh token
-        const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+        // Get refresh token from cookie or body
+        const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
         
-        // Check if refresh token exists
+        // Validation middleware checks if token exists
+        // Additional check for cookie fallback
         if (!refreshToken) {
             throw new AppError('Refresh token required', 400);
         }
