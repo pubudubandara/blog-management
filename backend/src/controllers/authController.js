@@ -1,5 +1,5 @@
-// Import required modules
 import authService from '../services/authService.js';
+import userRepository from '../repositories/userRepository.js';
 import AppError from '../utils/AppError.js';
 
 // Register a new user
@@ -61,22 +61,26 @@ export const login = async (req, res, next) => {
             throw new AppError('Please provide email and password', 400);
         }
 
-        // Authenticate user
-        const { user, token } = await authService.login(email, password);
+        // Authenticate user and get both tokens
+        const { user, accessToken, refreshToken } = await authService.login(email, password);
 
-        // Set token as cookie
-        res.cookie('token', token, {
+        // Set refresh token as httpOnly cookie (more secure)
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000 // 1 day
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        // Return success response
+        // Return success response with access token
         res.status(200).json({
             status: 'success',
             message: 'Logged in successfully',
-            data: { user, token }
+            data: { 
+                user, 
+                accessToken,
+                refreshToken // Also send in response for non-browser clients
+            }
         });
     } catch (err) {
         next(err);
@@ -86,10 +90,14 @@ export const login = async (req, res, next) => {
 // Logout user
 export const logout = async (req, res, next) => {
     try {
-        // Clear token cookie
-        res.clearCookie('token');
+        // Clear refresh token cookie
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
         
-        // Clear refresh token if user is logged in
+        // Optional: Invalidate refresh token in database if you're tracking them
         if (req.user && req.user.id) {
             const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
             if (refreshToken) {
