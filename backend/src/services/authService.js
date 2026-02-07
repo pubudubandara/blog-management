@@ -5,10 +5,16 @@ import AppError from "../utils/AppError.js";
 
 class AuthService {
   async register(data) {
-    // Check if user already exists
-    const existingUser = await userRepository.findByEmail(data.email);
-    if (existingUser) {
+    // Check if email already exists
+    const existingEmail = await userRepository.findByEmail(data.email);
+    if (existingEmail) {
       throw new AppError("Email already in use", 400);
+    }
+
+    // Check if username already exists
+    const existingUsername = await userRepository.findByUsername(data.username);
+    if (existingUsername) {
+      throw new AppError("Username already taken", 400);
     }
 
     // Hash the password for security
