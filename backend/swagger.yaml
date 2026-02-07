@@ -588,8 +588,8 @@ paths:
     get:
       tags:
         - Users
-      summary: Get user by ID (Admin only)
-      description: Retrieve a specific user by their ID (requires admin role)
+      summary: Get user by ID
+      description: Retrieve a specific user by their ID
       security:
         - bearerAuth: []
       parameters:
@@ -616,12 +616,6 @@ paths:
                     properties:
                       user:
                         $ref: '#/components/schemas/User'
-        '403':
-          description: Forbidden (Not Admin)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '404':
           description: User not found
           content:
