@@ -11,7 +11,7 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')       
     .regex(/[\W_]/, 'Password must contain at least one special character (!@#$...)'), 
-    role: z.enum(['admin', 'user', 'editor']).optional(), // Optional, defaults to user in DB
+    role: z.enum(['admin', 'user']).optional(), // Optional, defaults to user in DB
   }),
 });
 
